@@ -4,6 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml)
 
+**🇧🇷 [Documentação em português](README.pt-BR.md)**
+
 Unified, contextual logging with auto-diagnosis. Node, browser, React Native. One API, zero fuss.
 
 ## What it does

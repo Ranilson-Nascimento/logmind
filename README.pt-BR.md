@@ -4,6 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml)
 
+**🇺🇸 [Documentation in English](README.md)**
+
 Logger unificado, com contexto e diagnóstico automático. Node, browser e React Native. Uma API, zero complicação.
 
 ## O que oferece
