@@ -18,7 +18,6 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install
         run: npm ci
@@ -29,7 +28,16 @@ jobs:
       - name: Test
         run: npm run test
 
-      - name: Publish
-        run: npm publish --access public
+      - name: Configure npm auth
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$(printf '%s' "$NPM_TOKEN" | tr -d '[:space:]')" > .npmrc
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify npm auth
+        run: npm whoami --registry https://registry.npmjs.org
+
+      - name: Publish
+        run: npm publish --access public --registry https://registry.npmjs.org
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

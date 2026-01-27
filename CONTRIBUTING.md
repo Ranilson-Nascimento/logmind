@@ -52,7 +52,9 @@ Run `npm run test` before submitting a PR.
 
 ## Publishing to npm
 
-The package is published to npm automatically when you **create a GitHub Release** or **push a tag** `v*` (e.g. `v1.0.0`). Configure the **NPM_TOKEN** secret (Settings → Secrets and variables → Actions) with an npm granular token (Read and write, Bypass 2FA). Ensure `package.json` version matches the tag (e.g. `1.0.0` ↔ `v1.0.0`).
+The package is published to npm automatically when you **create a GitHub Release** or **push a tag** `v*` (e.g. `v1.0.0`). Configure the **NPM_TOKEN** secret (Settings → Secrets and variables → Actions) with an npm granular token (Read and write, **Bypass 2FA**). Ensure `package.json` version matches the tag (e.g. `1.0.0` ↔ `v1.0.0`).
+
+**403 "Bypass 2FA required"**: Revoke the current token on [npm Access Tokens](https://www.npmjs.com/settings/~/tokens), create a **new** granular token, and ensure **Bypass two-factor authentication** is **checked**. When pasting into the GitHub secret, use Paste without formatting (e.g. Ctrl+Shift+V) so no extra spaces or newlines are added. Update **NPM_TOKEN** and re-run the workflow.
 
 ## Questions
 
