@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ranilson-Nascimento/logmind.git"
+    "url": "git+https://github.com/Ranilson-Nascimento/logmind.git"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
