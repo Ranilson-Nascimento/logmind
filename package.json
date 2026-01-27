@@ -1,0 +1,86 @@
+{
+  "name": "logmind",
+  "version": "1.0.0",
+  "description": "Unified, contextual logging with auto-diagnosis. Front + Back. Zero fuss.",
+  "keywords": [
+    "logger",
+    "logging",
+    "structured-logs",
+    "context",
+    "diagnosis",
+    "node",
+    "react",
+    "react-native",
+    "observability"
+  ],
+  "author": "Logmind contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ranilson-Nascimento/logmind.git"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./react-native": {
+      "types": "./dist/platforms/react-native.d.ts",
+      "import": "./dist/platforms/react-native.js",
+      "require": "./dist/platforms/react-native.cjs"
+    },
+    "./browser": {
+      "types": "./dist/platforms/browser.d.ts",
+      "import": "./dist/platforms/browser.js",
+      "require": "./dist/platforms/browser.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.pt-BR.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "examples"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src --ext .ts",
+    "clean": "rimraf dist",
+    "example:basic": "node examples/node-basic.mjs",
+    "example:context": "node examples/node-context.mjs",
+    "example:diagnosis": "node examples/node-auto-diagnosis.mjs",
+    "example:file": "node examples/node-transport-file.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "eslint": "^8.55.0",
+    "express": "^4.18.2",
+    "firebase-admin": "^12.0.0",
+    "mongodb": "^6.3.0",
+    "rimraf": "^5.0.5",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "mongodb": "*",
+    "firebase-admin": "*"
+  },
+  "peerDependenciesMeta": {
+    "mongodb": { "optional": true },
+    "firebase-admin": { "optional": true }
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
