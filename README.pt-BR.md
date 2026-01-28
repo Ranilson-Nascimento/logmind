@@ -1,12 +1,13 @@
 # Logmind
 
 [![npm version](https://img.shields.io/npm/v/logmind.svg)](https://www.npmjs.com/package/logmind)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/logmind)](https://www.npmjs.com/package/logmind)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml)
 
 **🇺🇸 [Documentation in English](README.md)**
 
-Logger unificado, com contexto e diagnóstico automático. Node, browser e React Native. Uma API, zero complicação.
+Logger unificado, com contexto e diagnóstico automático para Node, browser e React Native. Uma API, zero complicação.
 
 ## O que oferece
 
@@ -208,3 +209,7 @@ O Logmind é publicado no [npm](https://www.npmjs.com/package/logmind). Novas ve
 ## Licença
 
 MIT.
+
+## Localização
+
+Este repositório mantém a tradução oficial em português em `README.pt-BR.md`. Ao atualizar o `README.md` em inglês para uma versão/release, atualize também `README.pt-BR.md` para manter os documentos sincronizados.

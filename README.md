@@ -1,13 +1,13 @@
 # Logmind
 
 [![npm version](https://img.shields.io/npm/v/logmind.svg)](https://www.npmjs.com/package/logmind)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/logmind)](https://bundlephobia.com/package/logmind)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/logmind)](https://www.npmjs.com/package/logmind)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml)
 
-**🇧🇷 [Documentação em português](README.pt-BR.md)**
+This README is in English. Português (pt-BR) translation is available: [README.pt-BR.md](README.pt-BR.md)
 
-Unified, contextual logging with auto-diagnosis. Node, browser, React Native. One API, zero fuss.
+Unified, contextual logging with auto-diagnosis for Node, browser and React Native. One API, zero fuss.
 
 ## What it does
 
@@ -59,6 +59,10 @@ npm run example:basic
 ```
 
 This keeps the published package lightweight while letting contributors and evaluators run full examples from the repo.
+
+## Localization
+
+This repository maintains an official Portuguese translation of this README at `README.pt-BR.md`. When you update the English README for a release, please update the Portuguese translation to keep both in sync.
 
 ## Context
 
