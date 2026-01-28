@@ -1,6 +1,7 @@
 # Logmind
 
 [![npm version](https://img.shields.io/npm/v/logmind.svg)](https://www.npmjs.com/package/logmind)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/logmind)](https://bundlephobia.com/package/logmind)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml)
 
@@ -43,6 +44,21 @@ log.info("Service started");
 log.warn("Token expiring soon");
 log.error("Failed to save order", error);
 ```
+
+## Run examples locally
+
+Examples are intentionally kept in the repository (not published in the npm tarball) so consumers get a small package. To run them locally:
+
+```bash
+git clone https://github.com/Ranilson-Nascimento/logmind.git
+cd logmind
+npm install
+# build + run the example you want
+npm run build
+npm run example:basic
+```
+
+This keeps the published package lightweight while letting contributors and evaluators run full examples from the repo.
 
 ## Context
 
