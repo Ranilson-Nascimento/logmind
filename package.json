@@ -51,6 +51,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "prepack": "node scripts/prepack.js",
+    "postpack": "node scripts/postpack.js",
     "lint": "eslint src --ext .ts",
     "clean": "rimraf dist",
     "example:basic": "node examples/node-basic.mjs",
