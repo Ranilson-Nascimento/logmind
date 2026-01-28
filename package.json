@@ -1,6 +1,6 @@
 {
   "name": "logmind",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Unified, contextual logging with auto-diagnosis. Front + Back. Zero fuss.",
   "keywords": [
     "logger",
