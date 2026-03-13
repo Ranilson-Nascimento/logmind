@@ -4,6 +4,7 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/logmind)](https://www.npmjs.com/package/logmind)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ranilson-Nascimento/logmind/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Open-green?style=for-the-badge)](https://ranilson-nascimento.github.io/logmind/demo/)
 
 **🇺🇸 English** · **🇧🇷 [Português (pt-BR)](README.pt-BR.md)**
 
