@@ -93,6 +93,7 @@ export function diagnose(err: unknown): DiagnosisResult {
       code: code ?? undefined,
       hint: "Falha em operação de banco de dados.",
       suggestedAction: "Verificar conectividade, credenciais e estado do banco.",
+      severity: "high",
     };
   }
 
@@ -102,6 +103,7 @@ export function diagnose(err: unknown): DiagnosisResult {
       code: code ?? undefined,
       hint: "Falha de rede ou serviço indisponível.",
       suggestedAction: "Verificar conectividade, DNS e se o serviço está no ar.",
+      severity: "high",
     };
   }
 
@@ -111,6 +113,7 @@ export function diagnose(err: unknown): DiagnosisResult {
       code: code ?? undefined,
       hint: "Acesso negado ou permissão insuficiente.",
       suggestedAction: "Revisar permissões e políticas de acesso.",
+      severity: "high",
     };
   }
 
@@ -119,6 +122,7 @@ export function diagnose(err: unknown): DiagnosisResult {
       category: "validation",
       hint: "Dados inválidos ou fora do formato esperado.",
       suggestedAction: "Validar payload e regras de negócio.",
+      severity: "medium",
     };
   }
 
@@ -128,6 +132,7 @@ export function diagnose(err: unknown): DiagnosisResult {
       code: code ?? undefined,
       hint: "Operação excedeu o tempo limite.",
       suggestedAction: "Aumentar timeout ou otimizar a operação.",
+      severity: "medium",
     };
   }
 
@@ -146,6 +151,7 @@ export function diagnose(err: unknown): DiagnosisResult {
       code: code ?? undefined,
       hint: "Erro conhecido do ambiente.",
       suggestedAction: "Consultar documentação do código de erro.",
+      severity: "low",
     };
   }
 
@@ -154,5 +160,6 @@ export function diagnose(err: unknown): DiagnosisResult {
     code: code ?? undefined,
     hint: "Sem classificação automática.",
     suggestedAction: "Analisar stack trace e contexto da operação.",
+    severity: "medium",
   };
 }

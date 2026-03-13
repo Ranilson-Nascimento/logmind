@@ -53,4 +53,18 @@ describe("diagnose", () => {
     const r = diagnose("plain string");
     expect(r.category).toBe("unknown");
   });
+
+  it("classifies Prisma P2002 as database", () => {
+    const err = new Error("Unique constraint failed");
+    (err as { code?: string }).code = "P2002";
+    const r = diagnose(err);
+    expect(r.category).toBe("database");
+  });
+
+  it("classifies ETIMEDOUT as database when in DB_CODES (checked first)", () => {
+    const err = new Error("connection timed out");
+    (err as { code?: string }).code = "ETIMEDOUT";
+    const r = diagnose(err);
+    expect(r.category).toBe("database");
+  });
 });

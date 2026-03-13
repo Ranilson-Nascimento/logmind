@@ -10,6 +10,8 @@ import { WebhookTransport } from "./webhook.js";
 import { createMongoTransport } from "./mongo.js";
 import { createElasticsearchTransport } from "./elasticsearch.js";
 import { createFirebaseTransport } from "./firebase.js";
+import { createOtlpTransport } from "./otlp.js";
+import { createSyslogTransport } from "./syslog.js";
 
 export { JsonTransport } from "./json.js";
 export { FileTransport } from "./file.js";
@@ -17,6 +19,8 @@ export { WebhookTransport } from "./webhook.js";
 export { createMongoTransport } from "./mongo.js";
 export { createElasticsearchTransport } from "./elasticsearch.js";
 export { createFirebaseTransport } from "./firebase.js";
+export { createOtlpTransport } from "./otlp.js";
+export { createSyslogTransport } from "./syslog.js";
 
 export type { JsonTransportConfig } from "./json.js";
 export type { FileTransportConfig } from "./file.js";
@@ -24,6 +28,8 @@ export type { WebhookTransportConfig } from "./webhook.js";
 export type { MongoTransportConfig } from "./mongo.js";
 export type { ElasticsearchTransportConfig } from "./elasticsearch.js";
 export type { FirebaseTransportConfig } from "./firebase.js";
+export type { OtlpTransportConfig } from "./otlp.js";
+export type { SyslogTransportConfig } from "./syslog.js";
 
 export interface TransportConfigMap {
   json?: { pretty?: boolean; stream?: NodeJS.WritableStream };
@@ -32,6 +38,8 @@ export interface TransportConfigMap {
   mongo?: { uri: string; collection?: string; db?: string };
   elasticsearch?: { node: string; index?: string; auth?: { username: string; password: string } };
   firebase?: { projectId: string; collection?: string; credentials?: object };
+  otlp?: { url: string; headers?: Record<string, string>; serviceName?: string };
+  syslog?: { host: string; port?: number; facility?: number; protocol?: "udp" | "tcp" };
 }
 
 export function createTransport(
@@ -58,6 +66,14 @@ export function createTransport(
   type: "firebase",
   config: TransportConfigMap["firebase"]
 ): Transport;
+export function createTransport(
+  type: "otlp",
+  config: TransportConfigMap["otlp"] & { url: string }
+): Transport;
+export function createTransport(
+  type: "syslog",
+  config: TransportConfigMap["syslog"] & { host: string }
+): Transport;
 export function createTransport(type: TransportType | string, config?: unknown): Transport;
 export function createTransport(
   type: TransportType | string,
@@ -76,6 +92,10 @@ export function createTransport(
       return createElasticsearchTransport(config as TransportConfigMap["elasticsearch"] & { node: string });
     case "firebase":
       return createFirebaseTransport(config as TransportConfigMap["firebase"] & { projectId: string });
+    case "otlp":
+      return createOtlpTransport(config as TransportConfigMap["otlp"] & { url: string });
+    case "syslog":
+      return createSyslogTransport(config as TransportConfigMap["syslog"] & { host: string });
     default:
       return new JsonTransport({});
   }

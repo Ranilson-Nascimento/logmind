@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logmind – Logging that understands your errors</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a32;
+      --text: #e4e4e7;
+      --textMuted: #a1a1aa;
+      --accent: #22d3ee;
+      --accentDim: #0891b2;
+      --success: #34d399;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --radius: 10px;
+      --font: 'Outfit', system-ui, sans-serif;
+      --fontMono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: radial-gradient(circle at top, #1f2933 0, #020617 45%, #020617 100%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .container { max-width: 1080px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      background: linear-gradient(135deg, var(--accent), var(--accentDim));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle { color: var(--textMuted); font-size: 1rem; max-width: 38rem; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(34,211,238,0.08);
+      border: 1px solid rgba(34,211,238,0.25);
+      color: var(--accent);
+      font-size: 0.8rem;
+      margin-bottom: 0.7rem;
+    }
+    .lang-toggle {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid var(--border);
+      gap: 0.25rem;
+      font-size: 0.75rem;
+    }
+    .lang-toggle button {
+      border: none;
+      background: transparent;
+      color: var(--textMuted);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .lang-toggle button.active {
+      background: var(--accentDim);
+      color: #020617;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.3fr);
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: none;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-debug { background: var(--surface2); color: var(--textMuted); }
+    .btn-info { background: var(--accentDim); color: var(--bg); }
+    .btn-warn { background: var(--warn); color: #1c1917; }
+    .btn-error { background: var(--error); color: #1c1917; }
+    .btn-auto { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+    .log-panel {
+      background: #0a0a0c;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: var(--fontMono);
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+    .log-entry {
+      padding: 0.4rem 0.6rem;
+      margin-bottom: 0.25rem;
+      border-radius: 6px;
+      border-left: 3px solid var(--border);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-entry.debug { border-left-color: var(--textMuted); }
+    .log-entry.info { border-left-color: var(--accent); }
+    .log-entry.warn { border-left-color: var(--warn); }
+    .log-entry.error { border-left-color: var(--error); }
+    .log-entry .level { font-weight: 600; margin-right: 0.5rem; }
+    .log-entry .time { color: var(--textMuted); font-size: 0.75rem; }
+    .log-entry .diagnosis { margin-top: 0.25rem; color: var(--accent); }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .clear-btn { background: var(--surface2); color: var(--textMuted); }
+    .code-block {
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: var(--fontMono);
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-database { background: #1e3a5f; color: #7dd3fc; }
+    .badge-network { background: #1e293b; color: #38bdf8; }
+    .badge-permission { background: #422006; color: #fcd34d; }
+    .badge-validation { background: #1c1917; color: #a7f3d0; }
+    .badge-timeout { background: #431407; color: #fdba74; }
+    .badge-known { background: #312e81; color: #c4b5fd; }
+    .badge-unknown { background: #374151; color: #9ca3af; }
+    .hero-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .cta {
+      padding: 0.55rem 1.2rem;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accentDim));
+      color: #020617;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cta-secondary {
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.8);
+      color: var(--textMuted);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .hero-metrics {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--textMuted);
+    }
+    .hero-metrics span strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+    .pill-list span {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.6rem;
+      font-size: 0.75rem;
+      color: var(--textMuted);
+      background: rgba(15,23,42,0.7);
+    }
+    .examples-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .example-tab {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--textMuted);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .example-tab:hover {
+      background: rgba(34,211,238,0.1);
+      color: var(--accent);
+      border-color: rgba(34,211,238,0.3);
+    }
+    .example-tab.active {
+      background: rgba(34,211,238,0.15);
+      color: var(--accent);
+      border-color: var(--accentDim);
+    }
+    .code-panel {
+      position: relative;
+      background: #0a0a0c;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1rem 3rem 1rem;
+      font-family: var(--fontMono);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      min-height: 120px;
+    }
+    .code-panel .placeholder {
+      color: var(--textMuted);
+      font-style: italic;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--textMuted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.15s, color 0.15s;
+    }
+    .copy-btn:hover {
+      background: var(--accentDim);
+      color: #020617;
+      border-color: var(--accentDim);
+    }
+    .copy-btn.copied {
+      background: var(--success);
+      color: #020617;
+      border-color: var(--success);
+    }
+    .example-label {
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    footer { text-align: center; color: var(--textMuted); font-size: 0.85rem; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <div class="pill">
+          <span>🚀 logmind</span>
+          <span>Node • Browser • React Native</span>
+        </div>
+        <h1>Logging that understands your errors.</h1>
+        <p class="subtitle" data-i18n="hero">
+          Unified, contextual logging with automatic error diagnosis. One API for backend, frontend and mobile — so you stop guessing what went wrong in production.
+        </p>
+        <p class="subtitle" data-i18n="hero-pt" style="display:none;">
+          Logger unificado, com contexto e diagnóstico automático de erros. Uma única API para backend, frontend e mobile — para você parar de adivinhar o que aconteceu em produção.
+        </p>
+        <div class="hero-actions">
+          <button class="cta" onclick="document.getElementById('install').scrollIntoView({ behavior: 'smooth' })">
+            npm install logmind
+          </button>
+          <a class="cta-secondary" href="https://github.com/Ranilson-Nascimento/logmind" target="_blank" rel="noreferrer">
+            ⭐ Ver no GitHub
+          </a>
+        </div>
+        <div class="hero-metrics">
+          <span><strong>1</strong> logger · Node, browser e React Native</span>
+          <span><strong>+ contexto</strong> por request, user, tenant</span>
+          <span><strong>+ diagnóstico</strong> automático de erros</span>
+        </div>
+      </div>
+      <div>
+        <div class="lang-toggle">
+          <button id="btn-en" class="active">EN</button>
+          <button id="btn-pt">PT-BR</button>
+        </div>
+        <div class="pill-list" style="margin-top:0.75rem;">
+          <span>Context propagation</span>
+          <span>log.auto(err)</span>
+          <span>Redact · Sampling</span>
+          <span>Child logger</span>
+          <span>Express · Fastify</span>
+          <span>OTLP · Syslog</span>
+          <span>Production mode</span>
+          <span>JSON, file, webhook, DB</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2 data-i18n="why-title">Why teams use Logmind</h2>
+        <h2 data-i18n="why-title-pt" style="display:none;">Por que times usam o Logmind</h2>
+        <p style="color: var(--textMuted); font-size: 0.9rem;" data-i18n="why-copy">
+          Logmind was built for teams that live in full‑stack land: a bit of Node, some React, a mobile app, lots of “what happened?” in production.
+        </p>
+        <p style="color: var(--textMuted); font-size: 0.9rem; display:none;" data-i18n="why-copy-pt">
+          O Logmind nasceu para times que vivem no mundo full‑stack: um pouco de Node, um pouco de React, um app mobile, e muito “o que será que aconteceu?” em produção.
+        </p>
+        <ul style="margin-top: 1rem; font-size: 0.9rem; padding-left: 1.1rem;">
+          <li data-i18n="why-1">
+            <strong>Context in every log</strong>: attach <code style="font-family: var(--fontMono);">userId</code>, <code style="font-family: var(--fontMono);">requestId</code>, <code style="font-family: var(--fontMono);">tenantId</code> once and have it everywhere.
+          </li>
+          <li data-i18n="why-2">
+            <strong>Auto‑diagnosis</strong>: <code style="font-family: var(--fontMono);">log.auto(err)</code> classifies errors (database, network, validation, timeout, permission…) and adds a human hint.
+          </li>
+          <li data-i18n="why-3">
+            <strong>Production‑ready</strong>: drop noisy debug logs, group repeated errors into a single <code style="font-family: var(--fontMono);">[repeated Nx]</code> event.
+          </li>
+          <li data-i18n="why-4">
+            <strong>One API, three platforms</strong>: same mental model for Node, browser and React Native.
+          </li>
+        </ul>
+      </section>
+
+      <section id="install">
+        <h2>Install</h2>
+        <div class="code-block">npm install logmind</div>
+        <div class="code-block">yarn add logmind</div>
+        <p style="margin-top: 0.5rem; color: var(--textMuted); font-size: 0.8rem;">
+          Node &gt;= 16. Works great with Express, Fastify, Koa, React, Next.js, React Native and any framework that lets you call a logger.
+        </p>
+      </section>
+    </main>
+
+    <section id="examples">
+      <h2 data-i18n="examples-title">Examples – click to see full code</h2>
+      <h2 data-i18n="examples-title-pt" style="display:none;">Exemplos – clique para ver o código completo</h2>
+
+      <p style="color: var(--textMuted); font-size: 0.9rem;" data-i18n="examples-copy">
+        Click any example below to display the full code. Use the copy button to paste into your project.
+      </p>
+      <p style="color: var(--textMuted); font-size: 0.9rem; display:none;" data-i18n="examples-copy-pt">
+        Clique em qualquer exemplo abaixo para ver o código completo. Use o botão copiar para colar no seu projeto.
+      </p>
+
+      <div class="examples-bar">
+        <button type="button" class="example-tab active" data-example="node-basic">Node básico</button>
+        <button type="button" class="example-tab" data-example="context">Contexto</button>
+        <button type="button" class="example-tab" data-example="express-async">Express async</button>
+        <button type="button" class="example-tab" data-example="express-middleware">Express middleware</button>
+        <button type="button" class="example-tab" data-example="browser">Browser</button>
+        <button type="button" class="example-tab" data-example="react-native">React Native</button>
+        <button type="button" class="example-tab" data-example="child-logger">Child logger</button>
+        <button type="button" class="example-tab" data-example="redact">Redact</button>
+        <button type="button" class="example-tab" data-example="sampling">Sampling</button>
+        <button type="button" class="example-tab" data-example="file">File</button>
+        <button type="button" class="example-tab" data-example="webhook">Webhook</button>
+        <button type="button" class="example-tab" data-example="otlp">OTLP</button>
+        <button type="button" class="example-tab" data-example="syslog">Syslog</button>
+        <button type="button" class="example-tab" data-example="production">Produção</button>
+        <button type="button" class="example-tab" data-example="diagnosis">Diagnóstico</button>
+      </div>
+
+      <p class="example-label" id="example-label">Node básico</p>
+      <div class="code-panel">
+        <button type="button" class="copy-btn" id="copy-btn" aria-label="Copy">Copiar</button>
+        <code id="example-code"></code>
+      </div>
+
+      <h3 style="margin-top: 1.5rem; font-size: 0.95rem;">Referência rápida</h3>
+      <h3 style="margin-top: 1rem; font-size: 0.95rem;">1. Node.js – basic logger</h3>
+      <div class="code-block">import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  env: process.env.NODE_ENV,
+});
+
+log.info("Service started");
+log.warn("Token expiring soon");
+
+try {
+  // your code
+} catch (error) {
+  log.error("Failed to save order", error, { orderId: "ord_123" });
+  log.auto(error); // diagnosis field in the log
+}</div>
+
+      <h3 style="margin-top: 1rem; font-size: 0.95rem;">2. Add context per request</h3>
+      <div class="code-block">import { withContextAsync, log } from "logmind";
+
+app.post("/orders", (req, res) =&gt; {
+  withContextAsync(
+    { userId: req.user.id, requestId: req.id },
+    async () =&gt; {
+      log.info("Creating order");
+      // await createOrder(...)
+      log.info("Order created");
+      res.sendStatus(201);
+    }
+  );
+});</div>
+
+      <h3 style="margin-top: 1rem; font-size: 0.95rem;">3. Browser / React Native</h3>
+      <div class="code-block">import { initBrowser, log } from "logmind/browser";
+
+initBrowser({
+  app: "my-webapp",
+  version: "1.0.0",
+  captureGlobalErrors: true, // window.onerror + unhandledrejection
+});
+
+log.info("Page loaded");
+log.auto(err);</div>
+    </section>
+
+    <section>
+      <h2 data-i18n="diagnosis-title">What <code style="font-family: var(--fontMono);">log.auto(err)</code> adds for you</h2>
+      <h2 data-i18n="diagnosis-title-pt" style="display:none;">O que o <code style="font-family: var(--fontMono);">log.auto(err)</code> faz por você</h2>
+
+      <p style="margin-bottom: 0.75rem; color: var(--textMuted); font-size: 0.9rem;" data-i18n="diagnosis-copy">
+        Instead of just logging “Error: something failed”, Logmind classifies and annotates your errors.
+      </p>
+      <p style="margin-bottom: 0.75rem; color: var(--textMuted); font-size: 0.9rem; display:none;" data-i18n="diagnosis-copy-pt">
+        Em vez de só jogar “Error: algo deu errado” no log, o Logmind classifica e anota seus erros.
+      </p>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <span class="badge badge-database">database</span>
+        <span class="badge badge-network">network</span>
+        <span class="badge badge-permission">permission</span>
+        <span class="badge badge-validation">validation</span>
+        <span class="badge badge-timeout">timeout</span>
+        <span class="badge badge-known">known</span>
+        <span class="badge badge-unknown">unknown</span>
+      </div>
+
+      <div class="code-block">{
+  "level": "error",
+  "message": "DB connection failed",
+  "error": {
+    "name": "Error",
+    "message": "connect ECONNREFUSED 127.0.0.1:27017",
+    "code": "ECONNREFUSED",
+    "diagnosis": {
+      "category": "database",
+      "hint": "Falha em operação de banco de dados.",
+      "suggestedAction": "Verificar conectividade, credenciais e estado do banco."
+    }
+  }
+}</div>
+    </section>
+
+    <section>
+      <h2 data-i18n="transports-title">Outputs that fit your stack</h2>
+      <h2 data-i18n="transports-title-pt" style="display:none;">Saídas que encaixam no seu stack</h2>
+
+      <ul style="margin-top: 0.5rem; font-size: 0.9rem; padding-left: 1.1rem;">
+        <li><strong>JSON (stdout)</strong> – one JSON line per log, perfect for Docker / Kubernetes.</li>
+        <li><strong>File</strong> – append to a file with rotation (<code style="font-family: var(--fontMono);">maxSize</code>, <code style="font-family: var(--fontMono);">maxFiles</code>).</li>
+        <li><strong>Webhook</strong> – POST each log (or batches) to any HTTP endpoint.</li>
+        <li><strong>OTLP</strong> – send logs to OTLP-compatible backends (Grafana, Datadog, Jaeger, etc.).</li>
+        <li><strong>Syslog</strong> – UDP or TCP to a Syslog server.</li>
+        <li><strong>MongoDB / Elasticsearch / Firebase</strong> – persist logs where you already have observability.</li>
+      </ul>
+
+      <div class="code-block" style="margin-top: 0.9rem;">import { initLogger } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  transport: "file",
+  file: {
+    path: "./logs/app.log",
+    maxSize: "10m",
+    maxFiles: 5,
+  },
+});</div>
+    </section>
+
+    <footer>
+      <div style="margin-bottom: 0.5rem;">
+        <a href="https://www.npmjs.com/package/logmind" target="_blank" rel="noreferrer">npm</a> ·
+        <a href="https://github.com/Ranilson-Nascimento/logmind" target="_blank" rel="noreferrer">GitHub</a> ·
+        <a href="https://github.com/Ranilson-Nascimento/logmind#readme" target="_blank" rel="noreferrer">Docs (EN)</a> ·
+        <a href="https://github.com/Ranilson-Nascimento/logmind/blob/main/README.pt-BR.md" target="_blank" rel="noreferrer">Docs (PT-BR)</a>
+      </div>
+      <div style="font-size: 0.78rem;">
+        <span data-i18n="footer">Built for people who actually read their logs.</span>
+        <span data-i18n="footer-pt" style="display:none;">Feito para pessoas que realmente olham os logs.</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const btnEn = document.getElementById("btn-en");
+    const btnPt = document.getElementById("btn-pt");
+
+    function setLang(lang) {
+      const isPt = lang === "pt";
+      btnEn.classList.toggle("active", !isPt);
+      btnPt.classList.toggle("active", isPt);
+
+      const showEn = !isPt;
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        el.style.display = showEn ? "" : "none";
+      });
+      document.querySelectorAll("[data-i18n$='-pt']").forEach((el) => {
+        el.style.display = isPt ? "" : "none";
+      });
+    }
+
+    btnEn.addEventListener("click", () => setLang("en"));
+    btnPt.addEventListener("click", () => setLang("pt"));
+
+    // ——— Exemplos clicáveis ———
+    const EXAMPLES = {
+      "node-basic": {
+        label: "Node básico",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  env: process.env.NODE_ENV,
+});
+
+log.info("Service started");
+log.warn("Token expiring soon");
+
+try {
+  // your code
+} catch (error) {
+  log.error("Failed to save order", error, { orderId: "ord_123" });
+  log.auto(error);  // adds diagnosis to the log
+}`
+      },
+      "context": {
+        label: "Contexto (sync)",
+        code: `import { initLogger, log, withContext } from "logmind";
+
+initLogger({ app: "my-api", version: "1.0.0" });
+
+withContext(
+  { userId: "usr_123", companyId: "emp_456", requestId: "req_abc" },
+  () => {
+    log.info("Order created");
+    log.info("Payment processed", { orderId: "ord_789" });
+  }
+);
+// Every log inside the callback includes userId, companyId, requestId.`
+      },
+      "express-async": {
+        label: "Express + withContextAsync",
+        code: `import express from "express";
+import { initLogger, log, withContextAsync } from "logmind";
+import { randomUUID } from "node:crypto";
+
+initLogger({ app: "express-api", version: "1.0.0" });
+
+const app = express();
+
+app.get("/orders/:id", (req, res) => {
+  const requestId = req.headers["x-request-id"] || randomUUID();
+  const userId = req.headers["x-user-id"] || "anonymous";
+
+  withContextAsync({ requestId, userId }, async () => {
+    log.info("Order request started", { orderId: req.params.id });
+    await someAsyncWork();
+    log.info("Order fetched");  // still has requestId/userId
+    res.json({ orderId: req.params.id, status: "ok" });
+  });
+});`
+      },
+      "browser": {
+        label: "Browser",
+        code: `import { initBrowser, log } from "logmind/browser";
+
+initBrowser({
+  app: "my-webapp",
+  version: "1.0.0",
+  captureGlobalErrors: true,  // logs window.onerror + unhandledrejection
+});
+
+log.info("Page loaded");
+log.auto(err);`
+      },
+      "react-native": {
+        label: "React Native",
+        code: `import { initReactNative, log } from "logmind/react-native";
+
+initReactNative({
+  app: "my-rn-app",
+  version: "1.0.0",
+});
+
+log.info("Screen mounted");
+log.auto(err);`
+      },
+      "express-middleware": {
+        label: "Express middleware",
+        code: `import express from "express";
+import { initLogger, log } from "logmind";
+import { createExpressMiddleware } from "logmind/express";
+
+initLogger({ app: "my-api", version: "1.0.0" });
+
+const app = express();
+app.use(createExpressMiddleware());
+
+app.get("/health", (req, res) => {
+  log.info("Health check");
+  res.json({ ok: true });
+});`
+      },
+      "child-logger": {
+        label: "Child logger",
+        code: `import { initLogger, createChildLogger } from "logmind";
+
+initLogger({ app: "my-api", version: "1.0.0" });
+
+const reqLogger = createChildLogger({ requestId: "req-123", userId: "u-1" });
+reqLogger.info("Request started");
+reqLogger.info("Step done");  // requestId/userId on every log`
+      },
+      "redact": {
+        label: "Redact",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  redact: {
+    keys: ["password", "token", "authorization"],
+    replacement: "[REDACTED]",
+  },
+});
+
+log.info("User login", { userId: "u-1", password: "secret" });
+// Output: password is [REDACTED]`
+      },
+      "sampling": {
+        label: "Sampling",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  sampling: { perLevel: { debug: 0.1, info: 1 } },
+});
+
+for (let i = 0; i < 100; i++) {
+  log.debug("Noisy debug");  // ~10% logged
+  log.info("Important");     // 100% logged
+}`
+      },
+      "file": {
+        label: "File transport",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  transport: "file",
+  file: {
+    path: "./logs/app.log",
+    maxSize: "10m",
+    maxFiles: 5,
+  },
+});
+
+log.info("Log written to file with rotation");`
+      },
+      "webhook": {
+        label: "Webhook",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  transport: "webhook",
+  webhook: {
+    url: "https://your-ingest.example/logs",
+    headers: { "X-API-Key": "..." },
+    batch: true,
+    batchSize: 10,
+    batchMs: 2000,
+  },
+});
+
+log.info("Sent to webhook (or batched)");`
+      },
+      "otlp": {
+        label: "OTLP",
+        code: `import { initLogger, log, createOtlpTransport } from "logmind";
+
+const otlp = createOtlpTransport({
+  url: "https://your-otlp-endpoint/v1/logs",
+  headers: { "Authorization": "Bearer ..." },
+});
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  transport: otlp,
+});
+
+log.info("Log sent via OTLP");`
+      },
+      "syslog": {
+        label: "Syslog",
+        code: `import { initLogger, log, createSyslogTransport } from "logmind";
+
+const syslog = createSyslogTransport({
+  host: "logs.example.com",
+  port: 514,
+  protocol: "udp",
+  appName: "my-api",
+});
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  transport: syslog,
+});
+
+log.info("Log sent to Syslog server");`
+      },
+      "production": {
+        label: "Modo produção",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({
+  app: "my-api",
+  version: "1.0.0",
+  env: "production",
+  production: true,
+});
+
+// debug is dropped in production
+log.debug("This will not appear");
+log.info("Service started");
+
+// Repeated identical errors become [repeated Nx] then suppressed
+for (let i = 0; i < 8; i++) {
+  log.error("DB connection failed", new Error("ECONNREFUSED"));
+}`
+      },
+      "diagnosis": {
+        label: "Diagnóstico (log.auto)",
+        code: `import { initLogger, log } from "logmind";
+
+initLogger({ app: "my-api", version: "1.0.0" });
+
+const err = new Error("connect ECONNREFUSED 127.0.0.1:27017");
+err.code = "ECONNREFUSED";
+
+log.auto(err);
+// Log includes error.diagnosis: { category: "database", hint, suggestedAction }
+
+log.auto(new Error("Validation failed: email is required"));
+// category: "validation"`
+      }
+    };
+
+    const exampleCodeEl = document.getElementById("example-code");
+    const exampleLabelEl = document.getElementById("example-label");
+    const copyBtn = document.getElementById("copy-btn");
+
+    function showExample(id) {
+      const ex = EXAMPLES[id] || EXAMPLES["node-basic"];
+      exampleLabelEl.textContent = ex.label;
+      exampleCodeEl.textContent = ex.code;
+      exampleCodeEl.classList.remove("placeholder");
+      document.querySelectorAll(".example-tab").forEach((t) => {
+        t.classList.toggle("active", t.getAttribute("data-example") === id);
+      });
+    }
+
+    document.querySelectorAll(".example-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        showExample(tab.getAttribute("data-example"));
+      });
+    });
+
+    copyBtn.addEventListener("click", () => {
+      const text = exampleCodeEl.textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copiado!";
+        copyBtn.classList.add("copied");
+        setTimeout(() => {
+          copyBtn.textContent = "Copiar";
+          copyBtn.classList.remove("copied");
+        }, 1500);
+      });
+    });
+
+    showExample("node-basic");
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "logmind",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Unified, contextual logging with auto-diagnosis. Front + Back. Zero fuss.",
   "keywords": [
     "logger",
@@ -19,29 +19,43 @@
     "type": "git",
     "url": "git+https://github.com/Ranilson-Nascimento/logmind.git"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "bin": {
+    "logmind": "./bin/logmind.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./react-native": {
       "types": "./dist/platforms/react-native.d.ts",
-      "import": "./dist/platforms/react-native.js",
-      "require": "./dist/platforms/react-native.cjs"
+      "import": "./dist/platforms/react-native.mjs",
+      "require": "./dist/platforms/react-native.js"
     },
     "./browser": {
       "types": "./dist/platforms/browser.d.ts",
-      "import": "./dist/platforms/browser.js",
-      "require": "./dist/platforms/browser.cjs"
+      "import": "./dist/platforms/browser.mjs",
+      "require": "./dist/platforms/browser.js"
+    },
+    "./express": {
+      "types": "./dist/platforms/express.d.ts",
+      "import": "./dist/platforms/express.mjs",
+      "require": "./dist/platforms/express.js"
+    },
+    "./fastify": {
+      "types": "./dist/platforms/fastify.d.ts",
+      "import": "./dist/platforms/fastify.mjs",
+      "require": "./dist/platforms/fastify.js"
     }
   },
   "sideEffects": false,
   "files": [
     "dist",
+    "bin",
     "README.md",
     "README.pt-BR.md",
     "CHANGELOG.md",
@@ -59,6 +73,11 @@
     "example:context": "node examples/node-context.mjs",
     "example:diagnosis": "node examples/node-auto-diagnosis.mjs",
     "example:file": "node examples/node-transport-file.mjs",
+    "example:production": "node examples/node-production.mjs",
+    "example:webhook": "node examples/node-webhook-echo.mjs",
+    "example:express": "node examples/express-middleware.mjs",
+    "example:express-async": "node examples/express-async.mjs",
+    "demo": "npm run build && npx serve . -p 5000",
     "test": "vitest run",
     "test:watch": "vitest"
   },

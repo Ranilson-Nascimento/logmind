@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { withContext, getContext, setContext, clearContext } from "../src/context.js";
+import { withContext, withContextAsync, getContext, setContext, clearContext } from "../src/context.js";
 
 describe("context", () => {
   beforeEach(() => {
@@ -53,5 +53,27 @@ describe("context", () => {
     expect(getContext()).toEqual({ a: "b" });
     clearContext();
     expect(getContext()).toEqual({});
+  });
+
+  it("withContextAsync merges context inside async fn", async () => {
+    let inner: ReturnType<typeof getContext> = {};
+    await withContextAsync({ userId: "u1", requestId: "r1" }, async () => {
+      inner = getContext();
+    });
+    expect(inner).toEqual({ userId: "u1", requestId: "r1" });
+  });
+
+  it("withContextAsync returns fn result", async () => {
+    const out = await withContextAsync({ x: 1 }, async () => 43);
+    expect(out).toBe(43);
+  });
+
+  it("withContextAsync propagates context after await", async () => {
+    let afterAwait: ReturnType<typeof getContext> = {};
+    await withContextAsync({ requestId: "req-1" }, async () => {
+      await Promise.resolve();
+      afterAwait = getContext();
+    });
+    expect(afterAwait).toEqual({ requestId: "req-1" });
   });
 });

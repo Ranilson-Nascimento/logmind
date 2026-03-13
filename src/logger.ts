@@ -1,14 +1,17 @@
 /**
  * Logmind – Logger principal
  * API unificada: info, warn, error, auto (diagnóstico), contexto, modo produção.
+ * Redact, sampling e rate limit opcionais.
  */
 
-import type { LogEntry, LogLevel, InitOptions, Transport, DeviceInfo, Platform } from "./types.js";
-import { getContext } from "./context.js";
+import type { LogEntry, LogLevel, InitOptions, Transport, DeviceInfo, Platform, LogContext } from "./types.js";
+import { getContext, withContext } from "./context.js";
 import { cleanStack } from "./formatter.js";
 import { diagnose } from "./diagnosis/index.js";
 import { productionFilter } from "./production.js";
 import { createTransport } from "./transports/index.js";
+import { applyRedact } from "./redact.js";
+import { shouldRateLimit } from "./rateLimit.js";
 
 let app: string | undefined;
 let version: string | undefined;
@@ -17,6 +20,9 @@ let platform: Platform = "node";
 let transport: Transport = createTransport("json", {});
 let production = false;
 let device: DeviceInfo | (() => DeviceInfo) | undefined;
+let redactConfig: InitOptions["redact"];
+let samplingConfig: InitOptions["sampling"];
+let rateLimitConfig: InitOptions["rateLimit"];
 
 function defaultEnv(): string {
   if (typeof process !== "undefined" && process.env?.NODE_ENV) {
@@ -77,10 +83,24 @@ function buildEntry(
   return entry;
 }
 
+function shouldSample(level: LogLevel): boolean {
+  const perLevel = samplingConfig?.perLevel;
+  if (!perLevel || perLevel[level] == null) return true;
+  const ratio = perLevel[level];
+  if (ratio >= 1) return true;
+  if (ratio <= 0) return false;
+  return Math.random() < ratio;
+}
+
 function emit(entry: LogEntry): void {
+  if (!shouldSample(entry.level)) return;
+  if (rateLimitConfig?.maxPerKey != null && shouldRateLimit(entry, rateLimitConfig)) return;
   let out: LogEntry | null = entry;
+  if (redactConfig?.keys?.length || redactConfig?.patterns?.length) {
+    out = applyRedact(out, redactConfig);
+  }
   if (production) {
-    out = productionFilter(entry, "info");
+    out = productionFilter(out, "info");
   }
   if (out) {
     try {
@@ -135,6 +155,8 @@ function resolveTransport(opts: InitOptions): Transport {
       webhook: opts.webhook,
       elasticsearch: opts.elasticsearch,
       firebase: opts.firebase,
+      otlp: opts.otlp,
+      syslog: opts.syslog,
       json: {},
     };
     const config = configMap[t] ?? {};
@@ -144,7 +166,7 @@ function resolveTransport(opts: InitOptions): Transport {
 }
 
 /**
- * Inicializa o logger. Configure app, versão, ambiente, plataforma e transporte.
+ * Inicializa o logger. Configure app, versão, ambiente, plataforma, transporte, redact, sampling e rateLimit.
  */
 export function initLogger(opts: InitOptions): void {
   app = opts.app;
@@ -153,9 +175,39 @@ export function initLogger(opts: InitOptions): void {
   platform = opts.platform ?? defaultPlatform();
   production = opts.production ?? env === "production";
   device = opts.device;
+  redactConfig = opts.redact;
+  samplingConfig = opts.sampling;
+  rateLimitConfig = opts.rateLimit;
   transport = resolveTransport(opts);
 }
 
 export function getLogger(): LogMind {
   return logmind;
+}
+
+/**
+ * Cria um logger que adiciona contexto fixo a todos os logs (ex: component, service).
+ */
+export function createChildLogger(extraContext: LogContext): LogMind {
+  return {
+    debug(m, meta) {
+      withContextForChild(extraContext, () => logmind.debug(m, meta));
+    },
+    info(m, meta) {
+      withContextForChild(extraContext, () => logmind.info(m, meta));
+    },
+    warn(m, err?, meta?) {
+      withContextForChild(extraContext, () => logmind.warn(m, err, meta));
+    },
+    error(m, err?, meta?) {
+      withContextForChild(extraContext, () => logmind.error(m, err, meta));
+    },
+    auto(err: unknown, message?: string, meta?: Record<string, unknown>) {
+      withContextForChild(extraContext, () => logmind.auto(err, message, meta));
+    },
+  };
+}
+
+function withContextForChild(ctx: LogContext, fn: () => void): void {
+  withContext(ctx, fn);
 }

@@ -54,11 +54,33 @@ export type DiagnosisCategory =
   | "known"
   | "unknown";
 
+export type DiagnosisSeverity = "low" | "medium" | "high";
+
 export interface DiagnosisResult {
   category: DiagnosisCategory;
   code?: string;
   hint?: string;
   suggestedAction?: string;
+  severity?: DiagnosisSeverity;
+}
+
+/** Redact sensitive data from context, meta and error before sending to transport. */
+export interface RedactConfig {
+  keys?: string[];
+  patterns?: RegExp[];
+  replacement?: string;
+}
+
+/** Sample logs by level (0–1 ratio). e.g. { debug: 0.1, info: 0.5 } */
+export interface SamplingConfig {
+  perLevel?: Partial<Record<LogLevel, number>>;
+}
+
+/** Rate limit logs by key; drops excess within windowMs. */
+export interface RateLimitConfig {
+  windowMs?: number;
+  maxPerKey?: number;
+  keyFn?: (entry: LogEntry) => string;
 }
 
 export type TransportType =
@@ -68,7 +90,8 @@ export type TransportType =
   | "mongo"
   | "elasticsearch"
   | "firebase"
-  | "sentry";
+  | "otlp"
+  | "syslog";
 
 export interface TransportConfigMap {
   json: { pretty?: boolean };
@@ -77,7 +100,8 @@ export interface TransportConfigMap {
   mongo: { uri: string; collection?: string; db?: string };
   elasticsearch: { node: string; index?: string };
   firebase: { projectId: string; collection?: string; credentials?: object };
-  sentry: { dsn: string; environment?: string };
+  otlp: { url: string; headers?: Record<string, string>; serviceName?: string };
+  syslog: { host: string; port?: number; facility?: number; protocol?: "udp" | "tcp" };
 }
 
 export interface InitOptions {
@@ -88,12 +112,16 @@ export interface InitOptions {
   transport?: TransportType | Transport;
   production?: boolean;
   device?: DeviceInfo | (() => DeviceInfo);
-  /** Config do transporte quando transport é string (ex: "mongo" -> mongo: { uri, collection }). */
+  redact?: RedactConfig;
+  sampling?: SamplingConfig;
+  rateLimit?: RateLimitConfig;
   mongo?: { uri: string; collection?: string; db?: string };
   file?: { path: string; maxSize?: string; maxFiles?: number };
   webhook?: { url: string; headers?: Record<string, string>; batch?: boolean; batchSize?: number; batchMs?: number };
   elasticsearch?: { node: string; index?: string; auth?: { username: string; password: string } };
   firebase?: { projectId: string; collection?: string; credentials?: object };
+  otlp?: { url: string; headers?: Record<string, string>; serviceName?: string };
+  syslog?: { host: string; port?: number; facility?: number; protocol?: "udp" | "tcp" };
 }
 
 export interface Transport {

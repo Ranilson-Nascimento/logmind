@@ -5,6 +5,8 @@ export default defineConfig({
     index: "src/index.ts",
     "platforms/react-native": "src/platforms/react-native.ts",
     "platforms/browser": "src/platforms/browser.ts",
+    "platforms/express": "src/platforms/express.ts",
+    "platforms/fastify": "src/platforms/fastify.ts",
   },
   format: ["esm", "cjs"],
   dts: true,
